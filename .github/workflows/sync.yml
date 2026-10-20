@@ -1,0 +1,36 @@
+name: Sync official Lark Suite skills
+
+on:
+  schedule:
+    - cron: "23 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-lark-suite
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Test sync script
+        run: uv run --python 3.12 --no-project python -m unittest discover -s tests -v
+      - name: Download and verify official skills
+        run: uv run --python 3.12 --no-project python scripts/sync.py
+      - name: Commit changed skills
+        run: |
+          git add --all -- lark-suite/
+          if git diff --cached --quiet; then
+            echo "Official skills are unchanged."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(skills): sync official lark-suite"
+          git push
