@@ -1,6 +1,11 @@
 name: Sync official Lark Suite skills
 
 on:
+  push:
+    paths:
+      - ".github/workflows/sync.yml"
+      - "scripts/sync.py"
+      - "tests/**"
   schedule:
     - cron: "23 3 * * *"
   workflow_dispatch:
